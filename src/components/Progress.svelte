@@ -12,7 +12,7 @@
 <div class="gamemodes-wrapper pokedle-font pokedle-text-shadow">
   {#each gamemodes as mode}
     <a
-      href={`/${mode}`}
+      href={mode}
       class={`gamemode-item ${mode === gamemode ? "active" : ""}`}
     >
       {$_(`pokedle.mode.${mode}.name`)}

@@ -9,7 +9,7 @@
 </script>
 
 <a
-  href={`/${game}`}
+  href={game}
   class="container pokedle-clip pokedle-font"
 >
   <div class="pokedle-shadow border pokedle-clip">
