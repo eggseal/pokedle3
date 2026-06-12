@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { _ } from "svelte-i18n";
   import { mulberry32, seed } from "../utils";
   import {
     options,
@@ -30,9 +30,12 @@
     locale,
   }: GameCardProps = $props();
 
+  const Gamemodes = ["classic", "blur", "description", "zoom"];
+
   let blurredImg = $state("");
   let visibleBlur = $state(false);
   let blurAmount = $derived(Math.max(11 - attempts.length, 2));
+  let cards = $state<any | null>(null);
 
   let quote = $state("");
   let species = $state<PokemonSpecies | null>(null);
@@ -41,80 +44,95 @@
   let initPosX = $state(50);
   let initPosY = $state(50);
   let initZoom = $state(450);
+  let pokemon = $state<Pokemon | null>(null);
   const maxAttempts = 20;
 
   let zoomZoom = $derived(
-    Math.max(
-      initZoom - ((initZoom - 100) / maxAttempts) * attempts.length,
-      100,
-    ),
+    attempts.length < maxAttempts && !complete
+      ? initZoom - ((initZoom - 100) / maxAttempts) * attempts.length
+      : 100,
   );
   let zoomX = $derived(
-    attempts.length < maxAttempts
+    attempts.length < maxAttempts && !complete
       ? initPosX - ((initPosX - 50) / maxAttempts) * attempts.length
       : 50,
   );
   let zoomY = $derived(
-    attempts.length < maxAttempts
+    attempts.length < maxAttempts && !complete
       ? initPosY - ((initPosY - 50) / maxAttempts) * attempts.length
       : 50,
   );
 
-  const rng = mulberry32(seed());
-  const randint = (max: number) => Math.floor(rng() * max);
+  $effect(() => {
+    void loadGame();
+  });
 
-  onMount(async () => {
-    if (gamemode === "blur") {
-      const API = `https://api.pokemontcg.io/v2/cards?q=name:${options[answer]}`;
-      const res = await fetch(API);
-      if (!res.ok) return;
+  async function loadGame() {
+    const rng = mulberry32(seed());
+    Array.from({ length: Gamemodes.indexOf(gamemode) }, () => rng());
+    const answer = Math.floor(rng() * options.length);
 
-      Array.from({ length: 5 }, rng);
-      const data = await res.json();
-      const choice = randint(data.totalCount);
-
-      visibleBlur = true;
-      blurredImg = data.data[choice].images.small;
-    } else if (gamemode === "description") {
-      const API = `${ORIGIN}/pokemon-species/${answer + MIN}`;
-      species = await getJson<PokemonSpecies>(API);
-      console.log(species);
-    } else if (gamemode === "zoom") {
-      const API = `${ORIGIN}/pokemon/${answer + MIN}`;
-      const pokemon = await getJson<Pokemon>(API);
-
-      zoomImg = pokemon.sprites.other["official-artwork"].front_default;
-      Array.from({ length: 7 }, rng);
-      const edged = randint(2);
-      initPosX = edged === 0 ? randint(2) * 100 : randint(100);
-      initPosY = edged === 1 ? randint(2) * 100 : randint(100);
+    switch (gamemode) {
+      case "blur":
+        var API = `https://api.pokemontcg.io/v2/cards?q=name:${options[answer]}`;
+        cards = await getJson<any>(API);
+        break;
+      case "description":
+        console.log("Fetching desc");
+        var API = `${ORIGIN}/pokemon-species/${answer + MIN}`;
+        species = await getJson<PokemonSpecies>(API);
+        break;
+      case "zoom":
+        var API = `${ORIGIN}/pokemon/${answer + MIN}`;
+        pokemon = await getJson<Pokemon>(API);
+        break;
     }
+  }
+
+  $effect(() => {
+    if (gamemode !== "blur" || !cards) return;
+    const rng = mulberry32(seed());
+    Array.from({ length: 5 }, rng);
+    const choice = Math.floor(rng() * cards.totalCount);
+
+    visibleBlur = true;
+    blurredImg = cards.data[choice].images.small;
   });
 
   $effect(() => {
     if (gamemode !== "description" || !species) return;
 
+    const version = locale === "en" ? "emerald" : "omega-ruby";
     const local = species.flavor_text_entries.filter(
-      (e) =>
-        (locale === "en" &&
-          e.language.name === locale &&
-          e.version.name === "emerald") ||
-        (locale === "es" &&
-          e.language.name === locale &&
-          e.version.name === "omega-ruby"),
+      (e) => e.language.name === locale && e.version.name === version,
     );
 
     if (local.length === 0) {
-      quote = "";
+      quote = $_("pokedle.none");
       return;
     }
 
-    const choice = randint(local.length);
+    const rng = mulberry32(seed());
+    Array.from({ length: 6 }, rng);
+    const choice = Math.floor(rng() * local.length);
 
     quote = local[choice].flavor_text.replace(
       new RegExp(options[answer], "gi"),
       (match) => (complete ? match.toUpperCase() : "_".repeat(match.length)),
     );
+  });
+
+  $effect(() => {
+    if (gamemode !== "zoom" || !pokemon) return;
+
+    zoomImg = pokemon.sprites.other["official-artwork"].front_default;
+    const rng = mulberry32(seed());
+    Array.from({ length: 7 }, rng);
+    const edged = Math.floor(rng() * 2);
+    initPosX =
+      edged === 0 ? Math.floor(rng() * 2) * 100 : Math.floor(rng() * 100);
+    initPosY =
+      edged === 1 ? Math.floor(rng() * 2) * 100 : Math.floor(rng() * 100);
   });
 </script>
 
@@ -257,6 +275,7 @@
   .zoom-border {
     background-color: #067861;
     --padding-size: 0.5rem;
+    isolation: isolate;
   }
 
   .zoom-border::before {
@@ -270,6 +289,7 @@
     grid-template-rows: repeat(64, 1fr);
     inset: var(--padding-size);
     background-color: #ddebed;
+    z-index: -1;
   }
 
   .zoom-background > :nth-child(even) {

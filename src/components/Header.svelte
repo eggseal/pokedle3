@@ -13,7 +13,7 @@
   <h2 class="header-title">
     <img
       class="header-logo"
-      src="/src/assets/logo.png"
+      src="./src/assets/logo.png"
       alt={$_(`pokedle.name`)}
     />
   </h2>

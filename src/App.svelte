@@ -1,5 +1,6 @@
 <script lang="ts">
   import { _, locale as _locale } from "svelte-i18n";
+  import { onMount } from "svelte";
   import { LocalManager, getDate, mulberry32, seed } from "./utils";
   import { options } from "./options";
 
@@ -11,82 +12,89 @@
   import Answer from "./components/Answer.svelte";
 
   const Gamemodes = ["classic", "blur", "description", "zoom"];
-
   const game = "pokedle3";
-  const gamemode = window.location.pathname.split("/").pop() || "";
 
-  const flagMenu = !gamemode || !Gamemodes.includes(gamemode);
-  const small = !flagMenu && gamemode !== Gamemodes[0];
+  let gamemode = $state("");
+  let attempts = $state<string[]>([]);
+  let answer = $state(-1);
+  let complete = $state(false);
+  let locale = $state("en");
 
-  let attempts: string[] = $state([]); // Holds all the data given to the AnswerCards
-  let answer: number = $state(-1); // Holds the index of the answer in the options array
-  let complete: boolean = $state(false); // Holds the completion state of the game
-  let locale: string = $state("en");
+  const flagMenu = $derived(!gamemode || !Gamemodes.includes(gamemode));
+  const small = $derived(!flagMenu && gamemode !== Gamemodes[0]);
 
-  const manager = {
-    attempt: new LocalManager(game, gamemode, "attempts"),
-    complete: new LocalManager(game, gamemode, "complete"),
-    date: new LocalManager(game, gamemode, "date"),
-    locale: new LocalManager("sett", "user", "locale"),
+  let manager = {
+    attempt: undefined as LocalManager | undefined,
+    complete: undefined as LocalManager | undefined,
+    date: undefined as LocalManager | undefined,
+    locale: undefined as LocalManager | undefined,
   };
 
-  if (manager.locale.get()) locale = manager.locale.get()!;
-  else manager.locale.set("en");
-  $effect(() => {
-    _locale.set(locale);
-    manager.locale.set(locale)
+  onMount(() => {
+    const update = () => {
+      gamemode = window.location.hash.replace(/^#\/?/, "");
+    };
+
+    update();
+    window.addEventListener("hashchange", update);
+    return () => {
+      window.removeEventListener("hashchange", update);
+    };
   });
 
-  if (!flagMenu) {
-    // Reset stored state if the date is new
-    const newDate = getDate();
-    if (newDate !== manager.date.get()) {
-      manager.attempt.set("[]");
-      manager.complete.set("false");
-      manager.date.set(newDate);
+  $effect(() => {
+    manager.locale ??= new LocalManager("sett", "user", "locale");
+    if (manager.locale.get()) locale = manager.locale.get()!;
+    else manager.locale.set("en");
+  });
+
+  $effect(() => {
+    _locale.set(locale);
+    manager.locale?.set(locale);
+  });
+
+  $effect(() => {
+    if (flagMenu) {
+      attempts = [];
+      complete = false;
+      answer = -1;
+      return;
     }
 
-    // Set states to stored values, store defaults if empty
-    if (manager.attempt.get()) attempts = JSON.parse(manager.attempt.get()!);
-    else manager.attempt.set("[]");
-    if (manager.complete.get()) complete = manager.complete.get() === "true";
-    else manager.complete.set("false");
+    manager.attempt = new LocalManager(game, gamemode, "attempts");
+    manager.complete = new LocalManager(game, gamemode, "complete");
+    manager.date = new LocalManager(game, gamemode, "date");
+
+    if (manager.date.get() !== getDate()) {
+      manager.attempt.set("[]");
+      manager.complete.set("false");
+      manager.date.set(getDate());
+    }
+    attempts = manager.attempt.get() ? JSON.parse(manager.attempt.get()!) : [];
+    complete = manager.complete.get() === "true";
 
     const rng = mulberry32(seed());
-    Array.from({ length: Gamemodes.indexOf(gamemode) }, rng); // Call rng a unique amount of times between gamemodes
+    Array.from({ length: Gamemodes.indexOf(gamemode) }, () => rng());
+    answer = Math.floor(rng() * options.length);
+  });
 
-    const randomIndex = Math.floor(rng() * options.length);
-    answer = randomIndex;
-  }
-
-  /**
-   * Validate the value against the game options, updating the attempts and setting game completion
-   */
-  const sendAction = (value: string): boolean => {
+  function sendAction(value: string): boolean {
     value = value.toLowerCase();
-    const option404 = options.find((opt) => opt === value) === undefined;
-    if (option404 || attempts.includes(value)) return false;
+    if (!options.includes(value) || attempts.includes(value)) return false;
 
     if (value === options[answer]) {
       complete = true;
-      manager.complete.set("true");
+      manager.complete?.set("true");
     }
 
     attempts.unshift(value);
-    manager.attempt.set(JSON.stringify(attempts));
+    manager.attempt?.set(JSON.stringify(attempts));
     return true;
-  };
+  }
 
-  const swapLocale = () => {
-    switch (locale) {
-      case "en":
-        locale = "es";
-        break;
-      case "es":
-        locale = "en";
-        break;
-    }
-  };
+  function swapLocale() {
+    locale = locale === "en" ? "es" : "en";
+  }
 </script>
 
 <div id="background"></div>
