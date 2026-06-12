@@ -1,0 +1,44 @@
+{
+  "pokedle": {
+    "name": "Pokédle: Gen III",
+    "description": "Adivina el Pokémon Diario! 3ra Generación.",
+    "none": "Ninguno",
+    "mode": {
+      "classic": {
+        "name": "Clásico",
+        "description": "Obtén pistas en cada intento",
+        "description2": "¡Adivina el Pokémon de hoy!",
+        "description3": "Generación III",
+        "columns": {
+          "name": "Pokémon",
+          "type1": "Tipo 1",
+          "type2": "Tipo 2",
+          "habitat": "Hábitat",
+          "egg": "Huevo",
+          "color": "Color",
+          "stage": "Evolución",
+          "height": "Altura",
+          "weight": "Peso"
+        }
+      },
+      "blur": {
+        "name": "Carta",
+        "description": "Con una carta borrosa",
+        "description2": "¿Cuál es el Pokémon en la carta?",
+        "description3": "Generación III"
+      },
+      "description": {
+        "name": "Descripción",
+        "description": "Con la descripción de la Pokédex",
+        "description2": "¿Qué Pokémon tiene esta descripción?",
+        "description3": "Generación III"
+      },
+      "zoom": {
+        "name": "Silueta",
+        "description": "¿Quién es ese Pokémon?",
+        "description2": "¿De qué Pokémon es esta silueta?",
+        "description3": "Generación III"
+      }
+    }
+  }
+}

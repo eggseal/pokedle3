@@ -1,0 +1,44 @@
+{
+  "pokedle": {
+    "name": "Pokédle: Gen III",
+    "description": "Daily Guess a Pokémon! 3rd Gen Edition.",
+    "none": "None",
+    "mode": {
+      "classic": {
+        "name": "Classic",
+        "description": "Get clues on every try",
+        "description2": "Guess today's Pokémon!",
+        "description3": "Generation III",
+        "columns": {
+          "name": "Pokémon",
+          "type1": "Type 1",
+          "type2": "Type 2",
+          "habitat": "Habitat",
+          "egg": "Egg Group",
+          "color": "Color",
+          "stage": "Evolution",
+          "height": "Height",
+          "weight": "Weight"
+        }
+      },
+      "blur": {
+        "name": "Card",
+        "description": "With a blurry card",
+        "description2": "What Pokémon is on the card?",
+        "description3": "Generation III"
+      },
+      "description": {
+        "name": "Description",
+        "description": "With a Pokédex description",
+        "description2": "Which Pokémon has this description?",
+        "description3": "Generation III"
+      },
+      "zoom": {
+        "name": "Silhouette",
+        "description": "Who's that Pokémon?",
+        "description2": "Which Pokémon is this the silhouette of?",
+        "description3": "Generation III"
+      }
+    }
+  }
+}

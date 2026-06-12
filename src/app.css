@@ -1,0 +1,65 @@
+#app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+body {
+  margin: 0;
+}
+
+.pokedle-font {
+  font-size: calc(var(--font-size) * 1.25);
+  line-height: calc(var(--font-size) * 1.25);
+  font-family: "PokemonEmerald", sans-serif;
+}
+
+.pokedle-shadow {
+  position: relative;
+}
+
+.pokedle-shadow::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  border: 0.25rem solid #000000;
+  opacity: 0.25;
+}
+
+.pokedle-text-shadow {
+  text-shadow: 0.125rem 0.125rem 0 hsl(0, 0%, 0%, 0.2);
+}
+
+.pokedle-clip {
+  padding: var(--padding-size);
+  clip-path: polygon(var(--clip-size) 0,
+      calc(100% - var(--clip-size)) 0,
+      calc(100% - var(--clip-size)) var(--clip-size),
+      100% var(--clip-size),
+      100% calc(100% - var(--clip-size)),
+      calc(100% - var(--clip-size)) calc(100% - var(--clip-size)),
+      calc(100% - var(--clip-size)) 100%,
+      var(--clip-size) 100%,
+      var(--clip-size) calc(100% - var(--clip-size)),
+      0 calc(100% - var(--clip-size)),
+      0 var(--clip-size),
+      var(--clip-size) var(--clip-size));
+}
+.pokedle-right-clip {
+  padding: var(--padding-size);
+  clip-path: polygon(0 0,
+      calc(100% - var(--clip-size)) 0,
+      calc(100% - var(--clip-size)) var(--clip-size),
+      100% var(--clip-size),
+      100% calc(100% - var(--clip-size)),
+      calc(100% - var(--clip-size)) calc(100% - var(--clip-size)),
+      calc(100% - var(--clip-size)) 100%,
+      0 100%);
+}
+
+@font-face {
+  font-family: "PokemonEmerald";
+  src: url("/src/assets/font.ttf");
+  font-weight: normal;
+  font-style: normal;
+}
