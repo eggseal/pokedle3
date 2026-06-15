@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { MIN } from "../options";
 
   type InputProps = {
     options: string[];
@@ -101,9 +102,17 @@
       <div class="pokedle3-autocomplete-background pokedle-clip">
         {#each autocompleteList as completeOption}
           <button
-            class="pokedle3-autocomplete-option pokedle-font"
-            onclick={(_) => fillValue(completeOption)}>{completeOption}</button
+            class="pokedle3-autocomplete-option pokedle-font pokedle-clip"
+            onclick={(_) => fillValue(completeOption)}
           >
+            <img
+              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${options.indexOf(completeOption.toLowerCase()) + MIN}.png`}
+              alt=""
+            />
+            <span>
+              {completeOption}
+            </span>
+          </button>
         {/each}
       </div>
     </div>
@@ -203,22 +212,29 @@
   .pokedle3-autocomplete-background {
     padding: 0.5rem;
     background-color: #c6bdb5;
-    max-height: 12rem;
+    max-height: 18rem;
     overflow-y: scroll;
   }
   .pokedle3-autocomplete-option {
     cursor: pointer;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
     width: 100%;
     background-color: transparent;
     border: none;
     font-size: 2rem;
     text-align: left;
     text-transform: capitalize;
-    text-shadow: 0.1rem 0.1rem 0 #c6bdb5;
+    text-shadow: 0.1rem 0.1rem 0 hsl(28, 13%, 54%);
   }
   .pokedle3-autocomplete-option:hover {
     background-color: white;
+    text-shadow: 0.1rem 0.1rem 0 #c6bdb5;
+  }
+
+  .pokedle3-autocomplete-option img {
+    width: 3rem;
   }
 
   @keyframes bounce {

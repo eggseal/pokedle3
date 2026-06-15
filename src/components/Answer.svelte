@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import fetchApi, { type PokemonOptions } from "../options";
+  import fetchApi, { MIN, type PokemonOptions } from "../options";
   import { compare } from "../utils";
   import { _ } from "svelte-i18n";
   import { options } from "../options";
@@ -19,6 +19,13 @@
   let dataStates: number[] = $state([]);
   let correct = $state(false);
 
+  let pokemonImage = $derived(
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${options.indexOf(att) + MIN}.png`,
+  );
+  let pokemonName = $derived(att);
+
+  let shownData = $state(0);
+
   onMount(async () => {
     attempt = await fetchApi(att, locale, small);
     answer = await fetchApi(options[ans], locale, small);
@@ -35,6 +42,11 @@
     dataStates.push(compare(attempt.stage, answer.stage, 3));
     dataStates.push(compare(attempt.height, answer.height, 3));
     dataStates.push(compare(attempt.weight, answer.weight, 3));
+
+    let intervalId = setInterval(() => {
+      shownData++;
+      if (shownData >= dataStates.length) clearInterval(intervalId);
+    }, 500);
   });
 </script>
 
@@ -45,15 +57,15 @@
     class:fx-green={correct}
   >
     <div class="pokeimage pokedle-clip">
-      <img src={attempt?.image} alt={attempt?.name} />
+      <img src={pokemonImage} alt={pokemonName} />
     </div>
     <div class="pokename light-fx pokedle-right-clip">
-      {attempt?.name}
+      {pokemonName}
     </div>
   </div>
   <!--  -->
   {#if !small && attempt !== null}
-    {#each Object.entries(attempt).slice(3) as data, index}
+    {#each Object.entries(attempt).slice(3, 3 + shownData) as data, index}
       <div
         class="field pokedle-clip"
         class:fx-gray={[0, 3, 4].includes(dataStates[index])}
@@ -136,6 +148,7 @@
     padding-left: 0.9rem;
     background-color: var(--clr);
     font-size: 3rem;
+    text-transform: capitalize;
     z-index: -1;
   }
 

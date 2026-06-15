@@ -1,6 +1,6 @@
 <script lang="ts">
   import { _ } from "svelte-i18n";
-  import { mulberry32, seed } from "../utils";
+  import { getRandomEdgePoint, mulberry32, seed } from "../utils";
   import {
     options,
     ORIGIN,
@@ -40,12 +40,17 @@
   let quote = $state("");
   let species = $state<PokemonSpecies | null>(null);
 
+  let zoomImgElement: HTMLImageElement | null = $state(null);
+  let zoomImgElementReady = $state(false);
   let zoomImg = $state("");
   let initPosX = $state(50);
   let initPosY = $state(50);
-  let initZoom = $state(450);
-  let pokemon = $state<Pokemon | null>(null);
+  let initZoom = $state(400);
   const maxAttempts = 20;
+
+  function onLoadImage() {
+    zoomImgElementReady = true;
+  }
 
   let zoomZoom = $derived(
     attempts.length < maxAttempts && !complete
@@ -83,8 +88,8 @@
         species = await getJson<PokemonSpecies>(API);
         break;
       case "zoom":
-        var API = `${ORIGIN}/pokemon/${answer + MIN}`;
-        pokemon = await getJson<Pokemon>(API);
+        zoomImgElementReady = false;
+        zoomImg = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${answer + MIN}.png`;
         break;
     }
   }
@@ -123,16 +128,17 @@
   });
 
   $effect(() => {
-    if (gamemode !== "zoom" || !pokemon) return;
+    if (gamemode !== "zoom" || !zoomImgElement) return;
 
-    zoomImg = pokemon.sprites.other["official-artwork"].front_default;
     const rng = mulberry32(seed());
     Array.from({ length: 7 }, rng);
-    const edged = Math.floor(rng() * 2);
-    initPosX =
-      edged === 0 ? Math.floor(rng() * 2) * 100 : Math.floor(rng() * 100);
-    initPosY =
-      edged === 1 ? Math.floor(rng() * 2) * 100 : Math.floor(rng() * 100);
+    const coords = getRandomEdgePoint(zoomImgElement, rng);
+    if (!coords) return;
+
+    initPosX = coords[0] > 50 ? coords[0] + 10 : coords[0] - 10;
+    initPosY = coords[1] > 50 ? coords[1] + 10 : coords[1] - 10;
+
+    console.log(coords, [initPosX, initPosY])
   });
 </script>
 
@@ -166,6 +172,14 @@
                 <div></div>
               {/each}
             </div>
+            <img
+              bind:this={zoomImgElement}
+              crossorigin="anonymous"
+              class="hidden-image"
+              src={zoomImg}
+              alt=""
+              onload={onLoadImage}
+            />
             <div
               class="img"
               style:background-image={`url("${zoomImg}")`}
@@ -303,5 +317,14 @@
 
   .zoom-wrapper:not(.completed) .img {
     filter: brightness(0);
+  }
+
+  .hidden-image {
+    position: absolute;
+    z-index: -9999;
+    inset: var(--padding-size);
+    width: calc(100% - 2 * var(--padding-size));
+    opacity: 0;
+    pointer-events: none;
   }
 </style>

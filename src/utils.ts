@@ -54,6 +54,52 @@ export function compare(att: any, ans: any, type: number) {
     }
 }
 
+export function getRandomEdgePoint(img: HTMLImageElement, rng: () => number) {
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+
+    if (img.naturalHeight === 0 || img.naturalWidth === 0) return [50, 50]
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return [50, 50];
+    ctx.drawImage(img, 0, 0);
+
+    const { data, width, height } = ctx.getImageData(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    const alphaAt = (x: number, y: number) => {
+        if (x < 0 || y < 0 || x >= width || y >= height) return 0;
+        return data[(y * width + x) * 4 + 3];
+    };
+
+    const edges: { x: number, y: number }[] = [];
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const alpha = alphaAt(x, y);
+            if (alpha < 10) continue;
+
+            if (
+                alphaAt(x - 1, y) < 10 ||
+                alphaAt(x + 1, y) < 10 ||
+                alphaAt(x, y - 1) < 10 ||
+                alphaAt(x, y + 1) < 10
+            ) {
+                edges.push({ x, y });
+            }
+        }
+    }
+
+    if (edges.length === 0) return [50, 50]
+
+    const chosen = edges[Math.floor(rng() * edges.length)]
+    return [(chosen.x / width) * 100, (chosen.y / height) * 100]
+}
+
 export class LocalManager {
     fullPath: string;
 
