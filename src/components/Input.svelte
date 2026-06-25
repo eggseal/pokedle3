@@ -18,7 +18,7 @@
   onMount(() => inputRefs[0]?.focus());
 
   const validateAndSend = () => {
-    const value = inputRefs.map((input) => input.value).join("");
+    const value = autocompleteList[0];
     const status = sendAction(value);
     if (status) {
       inputRefs.forEach((input) => (input.value = ""));
@@ -36,6 +36,7 @@
         validateAndSend();
         break;
       default:
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
         e.preventDefault();
         if (index < charsize - 1 && /^[A-Za-z]$/.test(e.key)) {
           inputRefs[index].value = e.key;

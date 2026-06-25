@@ -55,11 +55,10 @@ export function compare(att: any, ans: any, type: number) {
 }
 
 export function getRandomEdgePoint(img: HTMLImageElement, rng: () => number) {
+    if (img.naturalHeight === 0 || img.naturalWidth === 0) return [50, 50]
     const canvas = document.createElement("canvas");
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
-
-    if (img.naturalHeight === 0 || img.naturalWidth === 0) return [50, 50]
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return [50, 50];
@@ -72,23 +71,22 @@ export function getRandomEdgePoint(img: HTMLImageElement, rng: () => number) {
         canvas.height
     );
 
-    const alphaAt = (x: number, y: number) => {
-        if (x < 0 || y < 0 || x >= width || y >= height) return 0;
-        return data[(y * width + x) * 4 + 3];
-    };
+    const edges: { x: number; y: number }[] = [];
+    const stride = width * 4;
+    for (let y = 0; y < height; y += 3) {
+        const row = y * width;
 
-    const edges: { x: number, y: number }[] = [];
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const alpha = alphaAt(x, y);
-            if (alpha < 10) continue;
+        for (let x = 0; x < width; x += 3) {
+            const pixelIndex = row + x;
+            const alphaIndex = pixelIndex * 4 + 3;
+            if (data[alphaIndex] < 10) continue;
 
-            if (
-                alphaAt(x - 1, y) < 10 ||
-                alphaAt(x + 1, y) < 10 ||
-                alphaAt(x, y - 1) < 10 ||
-                alphaAt(x, y + 1) < 10
-            ) {
+            const left = x === 0 || data[alphaIndex - 4] < 10;
+            const right = x === width - 1 || data[alphaIndex + 4] < 10;
+            const top = y === 0 || data[alphaIndex - stride] < 10;
+            const bottom = y === height - 1 || data[alphaIndex + stride] < 10;
+
+            if (left || right || top || bottom) {
                 edges.push({ x, y });
             }
         }

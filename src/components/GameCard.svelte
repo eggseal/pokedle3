@@ -42,7 +42,7 @@
 
   let zoomImgElement: HTMLImageElement | null = $state(null);
   let zoomImgElementReady = $state(false);
-  let zoomImg = $state("");
+  let zoomImg = $state("/");
   let initPosX = $state(50);
   let initPosY = $state(50);
   let initZoom = $state(400);
@@ -128,15 +128,16 @@
   });
 
   $effect(() => {
-    if (gamemode !== "zoom" || !zoomImgElement) return;
+    if (gamemode !== "zoom" || !zoomImgElement || !zoomImgElementReady) return;
 
     const rng = mulberry32(seed());
     Array.from({ length: 7 }, rng);
     const coords = getRandomEdgePoint(zoomImgElement, rng);
     if (!coords) return;
 
-    initPosX = coords[0] > 50 ? coords[0] + 10 : coords[0] - 10;
-    initPosY = coords[1] > 50 ? coords[1] + 10 : coords[1] - 10;
+    const offset = 15;
+    initPosX = coords[0] > 50 ? coords[0] + offset : coords[0] - offset;
+    initPosY = coords[1] > 50 ? coords[1] + offset : coords[1] - offset;
 
     console.log(coords, [initPosX, initPosY])
   });
