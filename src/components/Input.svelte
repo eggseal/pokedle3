@@ -18,7 +18,9 @@
   onMount(() => inputRefs[0]?.focus());
 
   const validateAndSend = () => {
-    const value = autocompleteList[0];
+    let value = inputRefs.map((inp) => inp.value).join("")
+    if (!options.includes(value)) value = autocompleteList[0];
+    
     const status = sendAction(value);
     if (status) {
       inputRefs.forEach((input) => (input.value = ""));
