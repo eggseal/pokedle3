@@ -2,6 +2,7 @@
   "pokedle": {
     "name": "Pokédle: Gen III",
     "description": "Adivina el Pokémon Diario! 3ra Generación.",
+    "previous-answer": "El Pokémon de ayer fué",
     "none": "Ninguno",
     "mode": {
       "classic": {

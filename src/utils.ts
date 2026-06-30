@@ -1,11 +1,12 @@
-export function getDate() {
+export function getDate(offset = 0) {
     const now = new Date();
+    now.setDate(now.getDate() + offset)
     const date = new Date(now.toLocaleDateString("en-US", { timeZone: "America/Belize" }));
     return date.toISOString().split("T")[0];
 }
 
-export function seed() {
-    const str = getDate();
+export function seed(offset = 0) {
+    const str = getDate(offset)
 
     let hash = 0;
     for (let i = 0; i < str.length; i++) {

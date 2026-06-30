@@ -2,6 +2,7 @@
   "pokedle": {
     "name": "Pokédle: Gen III",
     "description": "Daily Guess a Pokémon! 3rd Gen Edition.",
+    "previous-answer": "Yesterday's Pokémon was",
     "none": "None",
     "mode": {
       "classic": {

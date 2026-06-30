@@ -3,9 +3,11 @@
 
   interface HeaderProps {
     swapLocale: () => void;
+    streak: number;
+    total: number;
   }
 
-  const { swapLocale }: HeaderProps = $props();
+  const { swapLocale, streak, total }: HeaderProps = $props();
 </script>
 
 <header id={`header-pokedle`} class={`pokedle-font pokedle-text-shadow`}>
@@ -20,7 +22,16 @@
   <p class="header-desc">{$_(`pokedle.description`)}</p>
   <div class="header-settings">
     <button onclick={swapLocale}> 🌐 </button>
-    <button>⚙️</button>
+    <button>
+      🔥 <span class="pokedle-font pokedle-text-shadow">
+        {streak}
+      </span>
+    </button>
+    <button>
+      ✔️ <span class="pokedle-font pokedle-text-shadow">
+        {total}
+      </span>
+    </button>
   </div>
 </header>
 

@@ -83,7 +83,6 @@
         cards = await getJson<any>(API);
         break;
       case "description":
-        console.log("Fetching desc");
         var API = `${ORIGIN}/pokemon-species/${answer + MIN}`;
         species = await getJson<PokemonSpecies>(API);
         break;
@@ -138,8 +137,6 @@
     const offset = 15;
     initPosX = coords[0] > 50 ? coords[0] + offset : coords[0] - offset;
     initPosY = coords[1] > 50 ? coords[1] + offset : coords[1] - offset;
-
-    console.log(coords, [initPosX, initPosY])
   });
 </script>
 

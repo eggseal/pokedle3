@@ -82,7 +82,7 @@
           {#if data[0] === "height"}
             <span class="suffix">m</span>
           {:else if data[0] === "weight"}
-            <span class="suffix">g</span>
+            <span class="suffix">kg</span>
           {/if}
 
           {#if dataStates[index] == 3}

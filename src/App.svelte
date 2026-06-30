@@ -15,10 +15,14 @@
   const game = "pokedle3";
 
   let gamemode = $state("");
+  let locale = $state("en");
+
   let attempts = $state<string[]>([]);
   let answer = $state(-1);
+  let prevAnswer = $state(-1);
   let complete = $state(false);
-  let locale = $state("en");
+  let streak = $state(0);
+  let total = $state(0);
 
   const flagMenu = $derived(!gamemode || !Gamemodes.includes(gamemode));
   const small = $derived(!flagMenu && gamemode !== Gamemodes[0]);
@@ -26,6 +30,8 @@
   let manager = {
     attempt: undefined as LocalManager | undefined,
     complete: undefined as LocalManager | undefined,
+    streak: undefined as LocalManager | undefined,
+    total: undefined as LocalManager | undefined,
     date: undefined as LocalManager | undefined,
     locale: undefined as LocalManager | undefined,
   };
@@ -43,7 +49,7 @@
   });
 
   $effect(() => {
-    manager.locale ??= new LocalManager("sett", "user", "locale");
+    manager.locale = new LocalManager("sett", "user", "locale");
     if (manager.locale.get()) locale = manager.locale.get()!;
     else manager.locale.set("en");
   });
@@ -51,6 +57,23 @@
   $effect(() => {
     _locale.set(locale);
     manager.locale?.set(locale);
+  });
+
+  $effect(() => {
+    const current = attempts;
+    if (gamemode) manager.attempt?.set(JSON.stringify(current));
+  });
+  $effect(() => {
+    const current = complete;
+    if (gamemode) manager.complete?.set(current.toString());
+  });
+  $effect(() => {
+    const current = streak;
+    if (gamemode) manager.streak?.set(current.toString());
+  });
+  $effect(() => {
+    const current = total;
+    if (gamemode) manager.total?.set(current.toString());
   });
 
   $effect(() => {
@@ -63,19 +86,35 @@
 
     manager.attempt = new LocalManager(game, gamemode, "attempts");
     manager.complete = new LocalManager(game, gamemode, "complete");
+    manager.streak = new LocalManager(game, gamemode, "streak");
+    manager.total = new LocalManager(game, gamemode, "total");
     manager.date = new LocalManager(game, gamemode, "date");
 
-    if (manager.date.get() !== getDate()) {
+    const prevDate = manager.date.get();
+    if (prevDate !== getDate()) {
+      // Reset the attempts
+      const yesterday = getDate(-1);
+      if (prevDate !== yesterday || manager.complete.get() === "false") {
+        // Reset the streak
+        manager.streak.set("0");
+      }
+
       manager.attempt.set("[]");
       manager.complete.set("false");
       manager.date.set(getDate());
     }
     attempts = manager.attempt.get() ? JSON.parse(manager.attempt.get()!) : [];
     complete = manager.complete.get() === "true";
+    streak = manager.streak.get() ? Number(manager.streak.get()) : 0;
+    total = manager.total.get() ? Number(manager.total.get()) : 0;
 
     const rng = mulberry32(seed());
     Array.from({ length: Gamemodes.indexOf(gamemode) }, () => rng());
     answer = Math.floor(rng() * options.length);
+
+    const prevRng = mulberry32(seed(-1));
+    Array.from({ length: Gamemodes.indexOf(gamemode) }, () => prevRng());
+    prevAnswer = Math.floor(prevRng() * options.length);
   });
 
   function sendAction(value: string): boolean {
@@ -84,11 +123,11 @@
 
     if (value === options[answer]) {
       complete = true;
-      manager.complete?.set("true");
+      streak += 1;
+      total += 1;
     }
 
-    attempts.unshift(value);
-    manager.attempt?.set(JSON.stringify(attempts));
+    attempts = [value, ...attempts];
     return true;
   }
 
@@ -98,7 +137,7 @@
 </script>
 
 <div id="background"></div>
-<Header {swapLocale} />
+<Header {swapLocale} {streak} {total} />
 
 {#if flagMenu}
   <div class="card-title-container">
@@ -147,6 +186,17 @@
   {#each attempts as attempt (attempt)}
     <Answer ans={answer} att={attempt} {locale} {small} />
   {/each}
+
+  <div class="previous-answer pokedle-font pokedle-text-shadow">
+    <div>
+      {$_("pokedle.previous-answer")}
+    </div>
+    {#if prevAnswer >= 0}
+      <div class="data">
+        {options[prevAnswer]}
+      </div>
+    {/if}
+  </div>
 {/if}
 
 <style>
@@ -192,5 +242,18 @@
     border-bottom: 0.3rem solid #4a4a63;
     font-size: 1.5rem;
     text-align: center;
+  }
+
+  .previous-answer {
+    color: white;
+    font-size: 2rem;
+    margin: 0 auto;
+    margin-top: 4rem;
+    text-align: center;
+    text-transform: capitalize;
+  }
+
+  .previous-answer .data {
+    text-decoration: underline;
   }
 </style>
